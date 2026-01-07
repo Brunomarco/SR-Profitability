@@ -21,16 +21,15 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Professional MBB-style colors
-MARKEN_NAVY = "#2C3E50"
-MARKEN_BLUE = "#3498DB"
-MARKEN_LIGHT_BLUE = "#5DADE2"
-MARKEN_GRAY = "#7F8C8D"
-MARKEN_GREEN = "#27AE60"
-MARKEN_RED = "#E74C3C"
-MARKEN_ORANGE = "#F39C12"
-MARKEN_TEAL = "#1ABC9C"
-MARKEN_PURPLE = "#9B59B6"
+# Marken & MBB Professional Color Palette
+MARKEN_NAVY = "#002855"        # Primary - Marken Navy Blue
+MARKEN_STEEL = "#4A6FA5"       # Secondary - Steel Blue
+MARKEN_LIGHT = "#7BA3C9"       # Tertiary - Light Blue
+MARKEN_GRAY = "#6C7A89"        # Neutral Gray
+MARKEN_GREEN = "#1D6F5C"       # Positive - Muted Teal Green (professional)
+MARKEN_RED = "#B03A2E"         # Negative - Muted Corporate Red
+MARKEN_GOLD = "#C9A227"        # Accent - Gold (for highlights)
+MARKEN_SLATE = "#34495E"       # Dark Slate for text
 
 # Custom CSS
 st.markdown("""
@@ -43,7 +42,7 @@ st.markdown("""
     }
     
     .main-header {
-        background: linear-gradient(135deg, #2C3E50 0%, #3498DB 100%);
+        background: linear-gradient(135deg, #002855 0%, #4A6FA5 100%);
         padding: 1.5rem 2rem;
         border-radius: 0 0 12px 12px;
         margin: -1rem -1rem 1.5rem -1rem;
@@ -65,10 +64,10 @@ st.markdown("""
     .section-title {
         font-size: 1.1rem;
         font-weight: 700;
-        color: #2C3E50;
+        color: #002855;
         margin: 1.5rem 0 1rem 0;
         padding-bottom: 0.5rem;
-        border-bottom: 2px solid #3498DB;
+        border-bottom: 2px solid #4A6FA5;
     }
     
     .metric-card {
@@ -84,7 +83,7 @@ st.markdown("""
         font-size: 0.7rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        color: #7F8C8D;
+        color: #6C7A89;
         font-weight: 600;
         margin-bottom: 0.4rem;
     }
@@ -92,20 +91,20 @@ st.markdown("""
     .metric-value {
         font-size: 1.5rem;
         font-weight: 700;
-        color: #2C3E50;
+        color: #002855;
     }
     
-    .metric-value.positive { color: #27AE60; }
-    .metric-value.negative { color: #E74C3C; }
+    .metric-value.positive { color: #1D6F5C; }
+    .metric-value.negative { color: #B03A2E; }
     
     .info-banner {
-        background: #EBF5FF;
-        border-left: 4px solid #3498DB;
+        background: #EEF4F9;
+        border-left: 4px solid #002855;
         padding: 0.75rem 1rem;
         border-radius: 0 8px 8px 0;
         margin: 1rem 0;
         font-size: 0.9rem;
-        color: #2C3E50;
+        color: #002855;
     }
     
     [data-testid="stMetricValue"] {
@@ -128,7 +127,7 @@ st.markdown("""
     footer {visibility: hidden;}
     
     section[data-testid="stSidebar"] {
-        background-color: #2C3E50;
+        background-color: #002855;
     }
     
     section[data-testid="stSidebar"] .stMarkdown {
@@ -248,22 +247,22 @@ def create_revenue_chart(monthly_df):
     fig.add_trace(go.Bar(
         x=monthly_df['Month_Label'],
         y=monthly_df['Revenue'],
-        marker_color=MARKEN_TEAL,
+        marker_color=MARKEN_STEEL,
         text=[format_currency(v) for v in monthly_df['Revenue']],
         textposition='outside',
-        textfont=dict(size=12, color='#2C3E50', family='Source Sans Pro'),
+        textfont=dict(size=12, color=MARKEN_NAVY, family='Source Sans Pro'),
         hovertemplate='<b>%{x}</b><br>Revenue: $%{y:,.0f}<extra></extra>',
         cliponaxis=False
     ))
     
     fig.update_layout(
         title=dict(text='<b>Monthly Revenue</b>', font=dict(size=18, color=MARKEN_NAVY, family='Source Sans Pro'), x=0),
-        xaxis=dict(title='', tickfont=dict(size=12), tickangle=-45),
+        xaxis=dict(title='', tickfont=dict(size=12, color=MARKEN_SLATE), tickangle=-45),
         yaxis=dict(
             title='Revenue (USD)', 
             tickformat='$,.0f', 
-            gridcolor='rgba(0,0,0,0.06)',
-            range=[0, max_val * 1.25]  # Add 25% headroom for labels
+            gridcolor='rgba(0,40,85,0.08)',
+            range=[0, max_val * 1.25]
         ),
         plot_bgcolor='white',
         paper_bgcolor='white',
@@ -286,22 +285,22 @@ def create_costs_chart(monthly_df):
     fig.add_trace(go.Bar(
         x=monthly_df['Month_Label'],
         y=monthly_df['Total_Costs'],
-        marker_color=MARKEN_PURPLE,
+        marker_color=MARKEN_NAVY,
         text=[format_currency(v) for v in monthly_df['Total_Costs']],
         textposition='outside',
-        textfont=dict(size=12, color='#2C3E50', family='Source Sans Pro'),
+        textfont=dict(size=12, color=MARKEN_NAVY, family='Source Sans Pro'),
         hovertemplate='<b>%{x}</b><br>Total Costs: $%{y:,.0f}<extra></extra>',
         cliponaxis=False
     ))
     
     fig.update_layout(
         title=dict(text='<b>Monthly Total Costs</b>', font=dict(size=18, color=MARKEN_NAVY, family='Source Sans Pro'), x=0),
-        xaxis=dict(title='', tickfont=dict(size=12), tickangle=-45),
+        xaxis=dict(title='', tickfont=dict(size=12, color=MARKEN_SLATE), tickangle=-45),
         yaxis=dict(
             title='Costs (USD)', 
             tickformat='$,.0f', 
-            gridcolor='rgba(0,0,0,0.06)',
-            range=[0, max_val * 1.25]  # Add 25% headroom for labels
+            gridcolor='rgba(0,40,85,0.08)',
+            range=[0, max_val * 1.25]
         ),
         plot_bgcolor='white',
         paper_bgcolor='white',
@@ -334,7 +333,7 @@ def create_profit_chart(monthly_df):
         marker_color=colors,
         text=[format_currency(v) for v in monthly_df['Profit']],
         textposition=['outside' if p >= 0 else 'outside' for p in monthly_df['Profit']],
-        textfont=dict(size=12, family='Source Sans Pro'),
+        textfont=dict(size=12, color=MARKEN_SLATE, family='Source Sans Pro'),
         hovertemplate='<b>%{x}</b><br>Profit: $%{y:,.0f}<extra></extra>',
         cliponaxis=False
     ))
@@ -344,11 +343,11 @@ def create_profit_chart(monthly_df):
     
     fig.update_layout(
         title=dict(text='<b>Monthly Profit (Revenue - Costs)</b>', font=dict(size=18, color=MARKEN_NAVY, family='Source Sans Pro'), x=0),
-        xaxis=dict(title='', tickfont=dict(size=12), tickangle=-45),
+        xaxis=dict(title='', tickfont=dict(size=12, color=MARKEN_SLATE), tickangle=-45),
         yaxis=dict(
             title='Profit (USD)', 
             tickformat='$,.0f', 
-            gridcolor='rgba(0,0,0,0.06)',
+            gridcolor='rgba(0,40,85,0.08)',
             range=[y_min, y_max]
         ),
         plot_bgcolor='white',
@@ -374,11 +373,11 @@ def create_waterfall_chart(total_revenue, total_costs, total_profit):
         y=[total_revenue, -total_costs, total_profit],
         text=[format_currency(total_revenue), format_currency(-total_costs), format_currency(total_profit)],
         textposition="outside",
-        textfont=dict(size=14, color='#2C3E50', family='Source Sans Pro'),
+        textfont=dict(size=14, color=MARKEN_NAVY, family='Source Sans Pro'),
         connector={"line": {"color": MARKEN_GRAY, "width": 2, "dash": "dot"}},
-        increasing={"marker": {"color": MARKEN_TEAL}},
+        increasing={"marker": {"color": MARKEN_STEEL}},
         decreasing={"marker": {"color": MARKEN_RED}},
-        totals={"marker": {"color": MARKEN_BLUE if total_profit >= 0 else MARKEN_RED}},
+        totals={"marker": {"color": MARKEN_GREEN if total_profit >= 0 else MARKEN_RED}},
         hovertemplate='<b>%{x}</b><br>Amount: $%{y:,.0f}<extra></extra>',
         cliponaxis=False
     ))
@@ -389,11 +388,11 @@ def create_waterfall_chart(total_revenue, total_costs, total_profit):
     
     fig.update_layout(
         title=dict(text='<b>Annual Profitability Waterfall: Revenue → Costs → Profit</b>', font=dict(size=18, color=MARKEN_NAVY, family='Source Sans Pro'), x=0),
-        xaxis=dict(title='', tickfont=dict(size=14)),
+        xaxis=dict(title='', tickfont=dict(size=14, color=MARKEN_SLATE)),
         yaxis=dict(
             title='Amount (USD)', 
             tickformat='$,.0f', 
-            gridcolor='rgba(0,0,0,0.06)',
+            gridcolor='rgba(0,40,85,0.08)',
             range=[-max_abs * 1.2, max_abs * 1.2]
         ),
         plot_bgcolor='white',
@@ -411,7 +410,8 @@ def create_cost_breakdown_chart(cost_data):
     
     fig = go.Figure()
     
-    colors = [MARKEN_NAVY, MARKEN_BLUE, MARKEN_TEAL, MARKEN_PURPLE]
+    # Navy blue gradient for professional look
+    colors = [MARKEN_NAVY, MARKEN_STEEL, MARKEN_LIGHT, MARKEN_GRAY]
     
     fig.add_trace(go.Bar(
         y=cost_data['Cost_Type'],
@@ -433,10 +433,10 @@ def create_cost_breakdown_chart(cost_data):
         xaxis=dict(
             title='Amount (USD)', 
             tickformat='$,.0f', 
-            gridcolor='rgba(0,0,0,0.06)',
+            gridcolor='rgba(0,40,85,0.08)',
             range=[0, max_val * 1.15]
         ),
-        yaxis=dict(title='', tickfont=dict(size=12)),
+        yaxis=dict(title='', tickfont=dict(size=12, color=MARKEN_SLATE)),
         plot_bgcolor='white',
         paper_bgcolor='white',
         margin=dict(t=80, b=60, l=160, r=60),
@@ -463,11 +463,11 @@ def create_margin_chart(monthly_df):
         x=monthly_df['Month_Label'],
         y=monthly_df['Margin_Pct'],
         mode='lines+markers+text',
-        line=dict(color=MARKEN_ORANGE, width=3),
-        marker=dict(size=12, color=MARKEN_ORANGE, line=dict(width=2, color='white')),
+        line=dict(color=MARKEN_GOLD, width=3),
+        marker=dict(size=12, color=MARKEN_GOLD, line=dict(width=2, color='white')),
         text=[f"{v:.1f}%" for v in monthly_df['Margin_Pct']],
         textposition='top center',
-        textfont=dict(size=11, color=MARKEN_ORANGE, family='Source Sans Pro'),
+        textfont=dict(size=11, color=MARKEN_SLATE, family='Source Sans Pro'),
         hovertemplate='<b>%{x}</b><br>Margin: %{y:.1f}%<extra></extra>',
         cliponaxis=False
     ))
@@ -477,11 +477,11 @@ def create_margin_chart(monthly_df):
     
     fig.update_layout(
         title=dict(text='<b>Monthly Profit Margin %</b>', font=dict(size=18, color=MARKEN_NAVY, family='Source Sans Pro'), x=0),
-        xaxis=dict(title='', tickfont=dict(size=12), tickangle=-45),
+        xaxis=dict(title='', tickfont=dict(size=12, color=MARKEN_SLATE), tickangle=-45),
         yaxis=dict(
             title='Margin (%)', 
             tickformat='.0f', 
-            gridcolor='rgba(0,0,0,0.06)',
+            gridcolor='rgba(0,40,85,0.08)',
             range=[y_min, y_max]
         ),
         plot_bgcolor='white',
@@ -682,8 +682,8 @@ def main():
         st.markdown("""
         <div style="text-align: center; padding: 3rem 2rem;">
             <div style="font-size: 4rem; margin-bottom: 1rem;">📂</div>
-            <h2 style="color: #2C3E50;">Upload Your Data to Begin</h2>
-            <p style="color: #7F8C8D; max-width: 500px; margin: 1rem auto;">
+            <h2 style="color: #002855;">Upload Your Data to Begin</h2>
+            <p style="color: #6C7A89; max-width: 500px; margin: 1rem auto;">
                 Use the sidebar to upload your SR Technics Excel file and view profitability analysis.
             </p>
         </div>
