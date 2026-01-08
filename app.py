@@ -175,13 +175,27 @@ def load_and_process_data(uploaded_file):
         
         df['ORD DT'] = pd.to_datetime(df['ORD DT'])
         
-        # Cost columns
-        cost_columns = ['PU COST', 'SHIP COST', 'MAN COST', 'DEL COST']
-        for col in cost_columns:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-            else:
-                df[col] = 0
+        # Look for Total Cost column (try different possible names)
+        total_cost_col = None
+        possible_cost_names = ['Total Cost', 'TOTAL COST', 'Total cost', 'TOTAL_COST', 'TotalCost', 'Total_Cost']
+        
+        for col_name in possible_cost_names:
+            if col_name in df.columns:
+                total_cost_col = col_name
+                break
+        
+        # If not found by name, check if column J exists (index 9)
+        if total_cost_col is None:
+            if len(df.columns) >= 10:
+                total_cost_col = df.columns[9]  # Column J (0-indexed = 9)
+                st.info(f"Using column '{total_cost_col}' as Total Cost (Column J)")
+        
+        if total_cost_col is None:
+            st.error("Could not find 'Total Cost' column. Please ensure it exists in your data.")
+            return None
+        
+        # Process Total Cost column
+        df['TOTAL_COSTS'] = pd.to_numeric(df[total_cost_col], errors='coerce').fillna(0)
         
         # Revenue column
         if 'NET' in df.columns:
@@ -191,7 +205,6 @@ def load_and_process_data(uploaded_file):
             return None
         
         # Calculations
-        df['TOTAL_COSTS'] = df[cost_columns].sum(axis=1)
         df['PROFIT'] = df['NET'] - df['TOTAL_COSTS']
         df['MARGIN_PCT'] = df.apply(lambda row: (row['PROFIT'] / row['NET'] * 100) if row['NET'] != 0 else 0, axis=1)
         
@@ -214,15 +227,10 @@ def create_monthly_summary(df):
         'NET': 'sum',
         'TOTAL_COSTS': 'sum',
         'PROFIT': 'sum',
-        'PU COST': 'sum',
-        'SHIP COST': 'sum',
-        'MAN COST': 'sum',
-        'DEL COST': 'sum',
         'ORD DT': 'count'
     }).reset_index()
     
-    monthly.columns = ['Period', 'Revenue', 'Total_Costs', 'Profit', 
-                       'Pickup_Cost', 'Shipping_Cost', 'Management_Cost', 'Delivery_Cost', 'Orders']
+    monthly.columns = ['Period', 'Revenue', 'Total_Costs', 'Profit', 'Orders']
     
     monthly['Margin_Pct'] = monthly.apply(
         lambda row: (row['Profit'] / row['Revenue'] * 100) if row['Revenue'] != 0 else 0, axis=1
@@ -405,48 +413,6 @@ def create_waterfall_chart(total_revenue, total_costs, total_profit):
     return fig
 
 
-def create_cost_breakdown_chart(cost_data):
-    """Horizontal bar chart for cost breakdown"""
-    
-    fig = go.Figure()
-    
-    # Navy blue gradient for professional look
-    colors = [MARKEN_NAVY, MARKEN_STEEL, MARKEN_LIGHT, MARKEN_GRAY]
-    
-    fig.add_trace(go.Bar(
-        y=cost_data['Cost_Type'],
-        x=cost_data['Amount'],
-        orientation='h',
-        marker_color=colors[:len(cost_data)],
-        text=[f"{format_currency(a)} ({p:.1f}%)" for a, p in zip(cost_data['Amount'], cost_data['Percentage'])],
-        textposition='inside',
-        insidetextanchor='middle',
-        textfont=dict(size=12, color='white', family='Source Sans Pro'),
-        hovertemplate='<b>%{y}</b><br>Amount: $%{x:,.0f}<extra></extra>',
-        cliponaxis=False
-    ))
-    
-    max_val = cost_data['Amount'].max()
-    
-    fig.update_layout(
-        title=dict(text='<b>Cost Breakdown by Category</b>', font=dict(size=18, color=MARKEN_NAVY, family='Source Sans Pro'), x=0),
-        xaxis=dict(
-            title='Amount (USD)', 
-            tickformat='$,.0f', 
-            gridcolor='rgba(0,40,85,0.08)',
-            range=[0, max_val * 1.15]
-        ),
-        yaxis=dict(title='', tickfont=dict(size=12, color=MARKEN_SLATE)),
-        plot_bgcolor='white',
-        paper_bgcolor='white',
-        margin=dict(t=80, b=60, l=160, r=60),
-        height=350,
-        showlegend=False
-    )
-    
-    return fig
-
-
 def create_margin_chart(monthly_df):
     """Line chart for profit margin %"""
     
@@ -524,7 +490,7 @@ def main():
             <p><b>Required Columns:</b></p>
             <ul style="line-height: 1.6;">
                 <li>ORD DT (Date)</li>
-                <li>PU COST, SHIP COST, MAN COST, DEL COST</li>
+                <li>Total Cost (Column J)</li>
                 <li>NET (Revenue)</li>
             </ul>
         </div>
@@ -613,37 +579,6 @@ def main():
             st.plotly_chart(margin_fig, use_container_width=True)
             
             # ══════════════════════════════════════════════════════════════════
-            # COST BREAKDOWN
-            # ══════════════════════════════════════════════════════════════════
-            
-            st.markdown('<div class="section-title">🔍 Cost Breakdown</div>', unsafe_allow_html=True)
-            
-            # Prepare cost breakdown data
-            cost_breakdown = pd.DataFrame({
-                'Cost_Type': ['Management Cost', 'Pickup Cost', 'Shipping Cost', 'Delivery Cost'],
-                'Amount': [
-                    df['MAN COST'].sum(),
-                    df['PU COST'].sum(),
-                    df['SHIP COST'].sum(),
-                    df['DEL COST'].sum()
-                ]
-            })
-            total_cost = cost_breakdown['Amount'].sum()
-            cost_breakdown['Percentage'] = (cost_breakdown['Amount'] / total_cost * 100) if total_cost > 0 else 0
-            cost_breakdown = cost_breakdown.sort_values('Amount', ascending=True)
-            
-            cost_fig = create_cost_breakdown_chart(cost_breakdown)
-            st.plotly_chart(cost_fig, use_container_width=True)
-            
-            # Cost table
-            st.markdown("**Cost Summary Table:**")
-            cost_display = cost_breakdown.sort_values('Amount', ascending=False).copy()
-            cost_display['Amount'] = cost_display['Amount'].apply(lambda x: f"${x:,.2f}")
-            cost_display['Percentage'] = cost_display['Percentage'].apply(lambda x: f"{x:.2f}%")
-            cost_display.columns = ['Cost Category', 'Amount', '% of Total']
-            st.dataframe(cost_display, use_container_width=True, hide_index=True)
-            
-            # ══════════════════════════════════════════════════════════════════
             # DETAILED DATA TABLES
             # ══════════════════════════════════════════════════════════════════
             
@@ -665,7 +600,7 @@ def main():
                 st.download_button("📥 Download Monthly Summary", csv, "monthly_summary.csv", "text/csv")
             
             with tab2:
-                raw_cols = ['ORD DT', 'ORD#', 'PU COST', 'SHIP COST', 'MAN COST', 'DEL COST', 'TOTAL_COSTS', 'NET', 'PROFIT', 'STATUS', 'PU CTRY']
+                raw_cols = ['ORD DT', 'ORD#', 'TOTAL_COSTS', 'NET', 'PROFIT', 'STATUS', 'PU CTRY']
                 available_cols = [c for c in raw_cols if c in df.columns]
                 
                 st.dataframe(
